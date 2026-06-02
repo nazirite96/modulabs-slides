@@ -12,42 +12,95 @@
 
 ---
 
-## ✨ 무엇을 해주나
+## ✨ 주요 기능
 
-- **브랜드 덱 자동 생성** — 코랄 레드 표지/섹션/클로징 + 라이트 본문(레드 헤더 룰·로고·진행바), 다이어그램은 브랜드 팔레트로 자동 리컬러
-- **단일 HTML · 의존성 0** — 빌드 없이 `index.html` 하나로 동작. 키보드/휠/스와이프 내비, **발표자 노트(`N`)**, **인라인 편집(`E`, `Ctrl/Cmd+S` 저장)** 내장
-- **모든 화면비에서 안 깨짐** — 1920×1080 고정 스테이지를 화면에 맞춰 균일 축소 + 레터박스 (울트라와이드·세로·노트북 어디서나 중앙 정렬)
-- **PPTX → HTML 변환** — 원본 슬라이드의 그래프·수식·다이어그램 이미지를 **모두 보존**한 채 브랜드 레이아웃에 재배치
-- **템플릿 라이브러리** — 기본 `modulabs-red` 외에, **참고 PPTX/PDF/이미지/URL에서 새 템플릿을 추출**해 추가 가능
-- **헤드리스 검증** — 슬라이드별 오버플로·정렬을 스크린샷으로 확인하는 절차 포함
+### 1. 브랜드 덱 자동 생성
+- 모두의연구소 **코랄 레드 디자인 시스템** — 표지·섹션·클로징은 풀블리드 코랄, 본문은 라이트 배경 + 레드/그레이 헤더 룰 + 로고 + 하단 진행바
+- 슬라이드 아키타입 4종(표지·목차·본문·클로징)과 **컴포넌트 라이브러리**: 콜아웃 노트, 큰 통계 수치, 불릿/번호 단계, 용어 카드, 이미지 figure 카드, 말풍선 등
+- 다이어그램을 **브랜드 팔레트로 자동 리컬러**(출력=소프트코랄, 임베딩=핑크, 앵커=네이비 …)
+
+### 2. 단일 HTML · 제로 의존성
+- 빌드·번들러·서버 불필요 — `index.html` 하나 + `assets/` 폴더면 끝, **더블클릭으로 실행**
+- 외부 의존성은 폰트뿐(Google Fonts CDN: Archivo · Noto Sans KR · JetBrains Mono)
+- 한 파일이라 이메일·USB·정적 호스팅 어디로든 그대로 공유 가능
+
+### 3. 발표·편집 기능 내장
+- **내비게이션** — 방향키 · 스페이스 · PageUp/Down · 마우스 휠 · 터치 스와이프 · Home/End
+- **발표자 노트 (`N`)** — 슬라이드마다 발표 스크립트를 하단 패널로 토글
+- **인라인 편집 (`E`)** — 화면에서 텍스트를 직접 고치고 `Ctrl/Cmd+S`로 브라우저(localStorage)에 저장
+- 페이지 카운터 · 진행바 자동 갱신
+
+### 4. 모든 화면비에서 안 깨짐
+- 1920×1080 고정 스테이지를 `min(가로비, 세로비)`로 **균일 축소 + 레터박스** → 울트라와이드·세로·노트북(1728×1117) 등 어디서나 잘림 없이 중앙 정렬
+- 헤더·로고·진행바도 스테이지 안에서 함께 스케일되어 **항상 정렬**
+- `ResizeObserver` + `visualViewport`로 창 크기·디스플레이 전환·모바일 주소창 변화에 즉시 재정렬
+
+### 5. PPTX → HTML 변환 (에셋 보존)
+- 원본 PPTX에서 슬라이드 텍스트와 미디어를 추출하고, **그래프·수식·다이어그램 이미지를 100% 보존**한 채 브랜드 레이아웃에 재배치
+- LibreOffice로 PDF 참고 렌더링 → 슬라이드별 실제 배치를 보고 재구성
+- 공유·수식 이미지는 배치 전 실제 내용을 확인, **검은 배경 수식 이미지는 다크 카드로** 감싸는 등 세부 규칙 포함
+
+### 6. 템플릿 라이브러리 + 새 템플릿 추가
+- `templates/<id>/` 단위로 여러 템플릿을 보관하고, 덱 생성 시 골라 씀(기본 `modulabs-red`)
+- **참고 PPTX/PDF/이미지/URL에서 팔레트·폰트·로고·레이아웃을 추출**해 새 템플릿을 스캐폴딩·등록
+
+### 7. 품질 검증 절차
+- 표지·다이어그램·가장 빽빽한 슬라이드·클로징을 **헤드리스 스크린샷**으로 렌더해 오버플로·겹침·정렬·로고 누락을 점검하고 고친 뒤 전달
 
 ---
 
 ## 📦 설치
 
-이 스킬은 **개인(user) 스킬** 폴더에 두면 모든 프로젝트에서 쓸 수 있습니다.
+Claude Code 스킬은 **특정 폴더에 파일을 두기만 하면** 인식됩니다. 빌드나 등록 과정이 없습니다.
 
+### 0단계 — 사전 준비물
+| 도구 | 용도 | 필수 | 확인 / 설치 |
+|---|---|---|---|
+| **Claude Code** | 스킬 실행 | ✅ 필수 | `claude --version` |
+| **Chrome / Chromium** | 결과물 스크린샷 검증 | 권장 | 보통 이미 설치돼 있음 |
+| **LibreOffice (`soffice`)** | PPTX → PDF 참고 렌더링 | 선택 | `brew install --cask libreoffice` |
+| 인터넷 연결 | 덱이 Google Fonts 로드 | 표시용 | — |
+
+> Chrome·LibreOffice가 없어도 덱 생성 자체는 됩니다. 검증 스크린샷·PPTX 변환 단계만 영향을 받습니다.
+
+### 방법 A — 개인(user) 스킬  *(권장 · 모든 프로젝트에서 사용 가능)*
 ```bash
+mkdir -p ~/.claude/skills
 git clone https://github.com/nazirite96/modulabs-slides.git \
   ~/.claude/skills/modulabs-slides
 ```
 
-특정 프로젝트에서만 쓰려면 그 프로젝트의 `.claude/skills/` 안에 클론하세요:
-
+### 방법 B — 특정 프로젝트에서만 사용
 ```bash
+cd <your-project>
+mkdir -p .claude/skills
 git clone https://github.com/nazirite96/modulabs-slides.git \
-  ./.claude/skills/modulabs-slides
+  .claude/skills/modulabs-slides
 ```
 
-설치 후 Claude Code를 다시 시작(또는 새 세션)하면 스킬이 인식됩니다.
+설치 후 경로가 이렇게 되면 정상입니다 → `~/.claude/skills/modulabs-slides/SKILL.md`
 
-### 요구 사항
-| 도구 | 용도 | 필수 여부 |
-|---|---|---|
-| **Claude Code** | 스킬 실행 | 필수 |
-| **Chrome / Chromium** | 결과물 헤드리스 스크린샷 검증 | 권장 |
-| **LibreOffice (`soffice`)** | PPTX → PDF 참고 렌더링 (PPTX 변환 시) | 선택 |
-| 인터넷 연결 | 덱이 Google Fonts(Archivo·Noto Sans KR·JetBrains Mono) 로드 | 표시용 |
+> **Windows**: `~/.claude` 대신 `%USERPROFILE%\.claude`, 경로 구분자는 `\` 입니다.
+> **ZIP 다운로드**도 가능 — GitHub의 *Code ▸ Download ZIP*을 받아 위 경로에 풀면 됩니다. (단, 폴더명이 `modulabs-slides`가 되도록)
+
+### 설치 확인
+1. Claude Code를 **새 세션으로 재시작** (스킬은 세션 시작 시 로드됨)
+2. 프롬프트에 `/` 입력 → 목록에 **`modulabs-slides`**가 보이면 성공
+3. 또는 바로 실행: `/modulabs-slides 간단한 테스트 덱 만들어줘`
+
+### 업데이트 / 제거
+```bash
+# 업데이트
+cd ~/.claude/skills/modulabs-slides && git pull
+
+# 제거
+rm -rf ~/.claude/skills/modulabs-slides
+```
+
+### 문제 해결
+- **스킬이 목록에 안 보여요** → 경로(`~/.claude/skills/modulabs-slides/SKILL.md`)를 확인하고 세션을 재시작하세요.
+- **생성된 덱에서 이미지·로고가 안 떠요** → `index.html` **옆에 `assets/` 폴더**가 함께 있어야 합니다. 옮길 땐 폴더째 옮기세요.
+- **검증 스크린샷이 안 만들어져요** → Chrome 경로를 확인하세요(macOS: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`). 없으면 이 단계만 건너뛰면 됩니다.
 
 ---
 
