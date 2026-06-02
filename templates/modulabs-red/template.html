@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{DECK_TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   모두의연구소 (Modulabs) RED SLIDE TEMPLATE
+   Fixed 16:9 stage (1920×1080) scaled to viewport. Single file.
+   Brand palette extracted from the official Modulabs red template.
+   ============================================================ */
+:root{
+  --stage-bg:#d9d7d2;          /* letterbox outside the 16:9 stage */
+  --bg:#F5F7FA;                /* content slide base */
+  --ink:#333333; --ink2:#5b5b62; --muted:#9a9aa0;
+  --coral:#F66B6E;             /* cover / section full-bleed bg + brand */
+  --red:#F7585C;               /* accent: rules, highlights, arrows */
+  --red-soft:#F98386;          /* solid soft-coral (T outputs, fills) */
+  --pink:#FDE3E4; --pink-bd:#F3AEB0;  /* light pink cells (E embeddings) */
+  --navy:#31538F;              /* secondary accent (C / [CLS] / strong box) */
+  --line:rgba(0,0,0,.10);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sans:'Noto Sans KR',sans-serif; --lat:'Archivo',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+
+/* ===== MANDATORY FIXED-STAGE BASE (do not change) ===== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--bg);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;
+  background:linear-gradient(118deg,#fff 0%, var(--bg) 100%);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+@media print{
+  html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
+  .deck-viewport{position:static;overflow:visible;}.deck-stage{position:static;width:auto;height:auto;transform:none!important;}
+  .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
+  .slide:last-child{break-after:auto;page-break-after:auto;}.deck-chrome,.edit-toggle,.edit-hotzone,.notes-panel,.notes-hint{display:none!important;}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+
+/* ===== GLOBAL ===== */
+*{box-sizing:border-box;}
+.slide{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;}
+.pad{position:absolute;inset:0;padding:230px 104px 96px;}   /* clears the header chrome */
+.mono{font-family:var(--mono);}
+.lead{font-size:25px;line-height:1.6;color:var(--ink2);}.lead b{color:var(--ink);font-weight:600;}
+
+/* faint diagonal watermark (template signature) — drop one per content slide */
+.watermark{position:absolute;left:0;top:0;bottom:0;width:580px;pointer-events:none;
+  background:linear-gradient(118deg, rgba(49,83,143,.05), transparent 64%);clip-path:polygon(0 0,52% 0,15% 100%,0 100%);}
+
+/* ===== CONTENT HEADER (top-left) ===== */
+.shead{position:absolute;top:104px;left:104px;right:104px;}
+.shead .eyebrow{font-family:var(--mono);font-size:18px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:500;margin-bottom:12px;}
+.stitle{font-family:var(--sans);font-weight:700;font-size:46px;line-height:1.06;color:var(--ink);letter-spacing:-.01em;}
+.stitle .k{color:var(--red);}
+.ssub{font-size:23px;color:var(--ink2);margin-top:8px;}
+
+/* the BERT-style acronym lockup (B E R T letters accented) */
+.acro{font-family:var(--lat);font-weight:700;font-size:40px;color:var(--ink);}
+.acro b{color:var(--red);}
+
+/* ===== PERSISTENT CHROME (top rule + logo + page) ===== */
+.deck-chrome{position:absolute;inset:0;pointer-events:none;z-index:5;opacity:1;transition:opacity .4s ease;}
+.deck-chrome.hide{opacity:0;}
+.chrome-top{position:absolute;top:62px;left:104px;right:104px;height:2px;background:#e3e3e6;}
+.chrome-top::before{content:"";position:absolute;left:0;top:-1px;width:430px;height:4px;background:var(--red);}
+.chrome-logo{position:absolute;top:74px;right:96px;width:150px;height:56px;background:var(--red);
+  -webkit-mask:url(assets/modulabs-logo-white.png) center/contain no-repeat;mask:url(assets/modulabs-logo-white.png) center/contain no-repeat;}
+.chrome-bot{position:absolute;bottom:46px;left:104px;right:104px;display:flex;justify-content:space-between;align-items:center;
+  font-family:var(--mono);font-size:14px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;}
+.chrome-bot .ch{color:var(--red);}
+.progress{position:absolute;left:0;bottom:0;height:4px;background:var(--red);width:0;transition:width .45s var(--ease);z-index:6;}
+
+/* ===== COMPONENT LIBRARY ===== */
+.row{display:flex;}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.box{border:1.5px solid #ddd6d6;background:#fff;border-radius:10px;padding:14px 16px;font-size:18px;text-align:center;}
+.fill{background:var(--navy);color:#fff;border:none;}
+.arr{font-family:var(--mono);color:var(--red);font-size:26px;font-weight:700;}.arr.ink{color:var(--ink);}
+/* dash bullet list */
+.dash{list-style:none;margin:0;padding:0;}
+.dash li{position:relative;padding:14px 0 14px 38px;font-size:25px;line-height:1.4;border-bottom:1px solid var(--line);}
+.dash li:last-child{border-bottom:none;}.dash li::before{content:"—";position:absolute;left:0;color:var(--red);font-weight:700;}
+.dash li.strike{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--red);}
+.dash li small{display:block;font-size:18px;color:var(--muted);margin-top:4px;text-decoration:none;}
+/* numbered agenda */
+.agenda{list-style:none;margin:0;padding:0;}
+.agenda li{display:flex;gap:28px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--line);font-size:34px;}
+.agenda li .n{font-family:var(--mono);font-size:24px;color:var(--red);min-width:40px;font-weight:600;}
+.agenda li small{font-size:19px;color:var(--muted);margin-left:8px;}
+/* rounded "BERT-like" model box */
+.bert{border:2.5px solid var(--coral);border-radius:14px;background:#fff;box-shadow:0 8px 26px rgba(246,107,110,.14);
+  display:flex;align-items:center;justify-content:center;font-family:var(--lat);font-weight:800;color:var(--red);position:relative;}
+.bert .nx{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:13px;color:var(--muted);}
+/* token chips */
+.chip{font-family:var(--mono);font-size:16px;border:1.5px solid #e2d9d9;background:#fff;padding:9px 12px;border-radius:6px;}
+.chip.mask{border-color:var(--red);color:var(--red);background:var(--pink);}
+.chip.cls{background:var(--navy);color:#fff;border-color:var(--navy);}
+/* input/output diagram cells (Devlin-style) */
+.io-row{display:flex;gap:10px;justify-content:center;}
+.io-cell{height:48px;min-width:70px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;border-radius:7px;padding:0 9px;}
+.c-out{background:var(--red-soft);color:#fff;}              /* outputs */
+.c-c{background:var(--navy);color:#fff;}                    /* C (NSP) */
+.c-e{background:var(--pink);border:1.5px solid var(--pink-bd);color:#9c4a4a;}  /* embeddings */
+.c-tok{background:#fff;border:1.5px solid #e0d7d7;}          /* tokens */
+.io-bert{height:80px;border:2.5px solid var(--coral);border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(246,107,110,.16);
+  display:flex;align-items:center;justify-content:center;font-family:var(--lat);font-weight:800;font-size:34px;color:var(--red);letter-spacing:.04em;}
+.io-lab{font-family:var(--mono);font-size:14px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;}
+.ring{outline:3px solid var(--red);outline-offset:3px;border-radius:9px;}
+/* stacks (encoder/decoder/base-large) */
+.stack{display:flex;flex-direction:column;gap:8px;}
+.stack .lab{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:3px;}
+.blk{border:1.5px solid #ddd6d6;border-radius:7px;height:42px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;background:#fff;}
+.blk.attn{background:var(--pink);border-color:var(--red-soft);}
+.blk.ff{background:#E8EEF8;border-color:#9DB4D8;}
+/* embedding sum table */
+.emb{display:grid;grid-template-columns:182px repeat(8,1fr);gap:7px;align-items:center;}
+.emb .rl{font-family:var(--mono);font-size:14px;color:var(--ink2);text-transform:uppercase;}.emb .rl.hot{color:var(--red);font-weight:700;}
+.emb .cell{height:46px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;border-radius:6px;}
+.emb .in{font-weight:700;font-size:16px;color:var(--ink);}
+.emb .tk{background:var(--pink);border:1.5px solid var(--pink-bd);}
+.emb .sg{background:var(--red-soft);color:#fff;}
+.emb .ps{background:#eceef3;border:1.5px solid #cfd3dc;}
+.emb .plus{font-family:var(--mono);color:var(--red);font-size:22px;text-align:center;}
+/* callout note (left coral bar, white card) */
+.note{border-left:5px solid var(--red);background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.05);border-radius:0 12px 12px 0;padding:18px 24px;font-size:22px;line-height:1.5;}
+.note b{color:var(--red);}
+/* speech bubble */
+.bubble{position:relative;background:var(--coral);color:#fff;border-radius:18px;padding:22px 30px;font-family:var(--lat);font-weight:700;font-size:30px;}
+.bubble::after{content:"";position:absolute;left:54px;bottom:-18px;border:14px solid transparent;border-top-color:var(--coral);border-bottom:0;}
+/* big stat */
+.stat .v{font-family:var(--lat);font-weight:800;font-size:84px;line-height:.9;color:var(--ink);}.stat .v .red{color:var(--red);}
+.stat .k{font-family:var(--mono);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:10px;}
+
+/* ===== REVEALS (re-trigger when slide becomes visible) ===== */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.pop{opacity:0;transform:scale(.94);transition:opacity .5s var(--ease),transform .5s var(--ease);}.slide.visible .pop{opacity:1;transform:none;}
+.slide.visible .d1{transition-delay:.05s}.slide.visible .d2{transition-delay:.13s}.slide.visible .d3{transition-delay:.21s}
+.slide.visible .d4{transition-delay:.29s}.slide.visible .d5{transition-delay:.37s}.slide.visible .d6{transition-delay:.45s}
+.slide.visible .d7{transition-delay:.53s}.slide.visible .d8{transition-delay:.61s}.slide.visible .d9{transition-delay:.69s}
+.new{animation:flash 1.1s var(--ease);}@keyframes flash{0%,60%{background:#fff6cc}100%{background:transparent}}
+
+/* ===== COVER / SECTION / CLOSING (coral full-bleed) ===== */
+.cover{background:var(--coral)!important;}
+.cover .logo-w{position:absolute;top:74px;right:90px;width:178px;height:70px;background:url(assets/modulabs-logo-white.png) center/contain no-repeat;}
+.cover h1.cv{position:absolute;left:96px;top:150px;margin:0;color:#fff;font-family:var(--sans);font-weight:900;font-size:118px;line-height:1.14;letter-spacing:-.01em;}
+.cover .cv-eng{position:absolute;left:100px;color:rgba(255,255,255,.92);font-family:var(--lat);font-weight:600;font-size:28px;}
+.cover .cv-pills{position:absolute;left:96px;bottom:150px;display:flex;gap:24px;}
+.cover .cv-pills span{border:2px solid #fff;color:#fff;border-radius:40px;padding:16px 40px;font-family:var(--sans);font-weight:700;font-size:25px;}
+/* decorative cluster (rounded squares + diamond w/ paper-plane + squiggle) */
+.cover .deco{position:absolute;right:120px;bottom:120px;width:440px;height:420px;}
+.cover .deco .sq{position:absolute;border-radius:34px;background:rgba(255,255,255,.16);}
+.cover .deco .sq1{width:200px;height:200px;right:150px;top:0;}.cover .deco .sq2{width:200px;height:200px;right:230px;top:170px;}
+.cover .deco .dia{position:absolute;width:215px;height:215px;right:0;bottom:30px;border-radius:36px;background:rgba(255,255,255,.16);transform:rotate(45deg);display:flex;align-items:center;justify-content:center;}
+.cover .deco .dia svg{transform:rotate(-45deg);}.cover .deco .sqg{position:absolute;left:40px;bottom:40px;}
+/* Contents/section style on coral: white title + right-aligned list */
+.cover .ctitle{position:absolute;left:96px;top:120px;color:#fff;font-family:var(--lat);font-weight:800;font-size:64px;}
+.cover .clist{position:absolute;right:120px;top:130px;width:760px;color:#fff;}
+.cover .clist .ci{display:flex;gap:24px;padding:16px 0;font-size:28px;}
+.cover .clist .ci b{min-width:150px;font-weight:700;}
+
+/* ===== EDIT MODE + PRESENTER NOTES (optional; keep) ===== */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:18px;left:18px;width:46px;height:46px;border-radius:50%;border:none;background:var(--ink);color:#fff;font-size:20px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .3s;z-index:10001;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}.edit-toggle.active{background:var(--red);}
+.editing [contenteditable]:hover{outline:2px dashed var(--red);outline-offset:3px;}.editing [contenteditable]:focus{outline:2px solid var(--red);outline-offset:3px;}
+.edit-banner{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:var(--mono);font-size:13px;padding:9px 18px;border-radius:30px;z-index:10001;opacity:0;transition:opacity .3s;}.edit-banner.show{opacity:1;}
+.notes-panel{position:fixed;left:0;right:0;bottom:0;max-height:40vh;overflow:auto;background:rgba(24,21,18,.97);color:#f3f0ea;padding:24px 48px 30px;transform:translateY(101%);transition:transform .35s var(--ease);z-index:9000;box-shadow:0 -12px 44px rgba(0,0,0,.35);}
+.notes-panel.show{transform:none;}
+.notes-panel .nt-head{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-soft);margin-bottom:12px;}
+.notes-panel .nt-body{font-size:23px;line-height:1.7;max-width:1500px;}
+.notes-hint{position:fixed;right:16px;bottom:14px;font-family:var(--mono);font-size:12px;color:var(--muted);z-index:8000;opacity:.55;}
+</style>
+</head>
+<body>
+<div class="deck-viewport">
+  <main class="deck-stage" id="deckStage">
+
+  <!-- ============ COVER (coral) ============ -->
+  <section class="slide cover active">
+    <div class="logo-w"></div>
+    <h1 class="cv reveal d1">{{TITLE_LINE1}}<br>{{TITLE_LINE2}}</h1>
+    <div class="cv-eng reveal d2" style="top:466px;">{{SUBTITLE_EN}}</div>
+    <div class="cv-pills reveal d3"><span>{{TAG1}}</span><span>{{TAG2}}</span><span>{{TAG3}}</span></div>
+    <div class="deco reveal d2">
+      <div class="sq sq1"></div><div class="sq sq2"></div>
+      <div class="dia"><svg width="86" height="86" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg></div>
+      <svg class="sqg" width="150" height="90" viewBox="0 0 150 90" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linecap="round"><path d="M8 70 C40 30 60 95 95 55 C115 32 130 50 142 38"/></svg>
+    </div>
+  </section>
+
+  <!-- ============ CONTENTS / SECTION (coral) ============ -->
+  <section class="slide cover">
+    <div class="logo-w"></div>
+    <div class="ctitle">Contents</div>
+    <div class="clist">
+      <div class="ci reveal d1"><b>Chapter 01</b><span>{{CH1}}</span></div>
+      <div class="ci reveal d2"><b>Chapter 02</b><span>{{CH2}}</span></div>
+      <div class="ci reveal d3"><b>Chapter 03</b><span>{{CH3}}</span></div>
+      <div class="ci reveal d4"><b>Chapter 04</b><span>{{CH4}}</span></div>
+    </div>
+    <div class="deco reveal d2">
+      <div class="sq sq1"></div><div class="sq sq2"></div>
+      <div class="dia"><svg width="86" height="86" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg></div>
+    </div>
+  </section>
+
+  <!-- ============ CONTENT (light, with diagram) ============ -->
+  <section class="slide" data-ct="01 · {{SECTION_NAME}}">
+    <div class="watermark"></div>
+    <div class="shead"><div class="eyebrow">01 · {{SECTION_NAME}}</div><div class="stitle">{{SLIDE_TITLE}}</div></div>
+    <div class="pad">
+      <!-- example: a simple flow diagram -->
+      <div class="reveal d1" style="display:flex;align-items:center;justify-content:center;gap:24px;">
+        <div class="box" style="min-width:200px;">{{INPUT}}</div>
+        <span class="arr">→</span>
+        <div class="bert" style="width:170px;height:130px;font-size:34px;"><span class="nx">Nx</span>MODEL</div>
+        <span class="arr">→</span>
+        <div class="box fill" style="min-width:170px;">{{OUTPUT}}</div>
+      </div>
+      <div class="note reveal d2" style="margin-top:56px;">{{KEY_POINT}} — 강조는 <b>이렇게</b>.</div>
+    </div>
+  </section>
+
+  <!-- ============ CLOSING (coral) ============ -->
+  <section class="slide cover" data-closing>
+    <div class="logo-w"></div>
+    <h1 class="cv reveal d1" style="top:280px;">감사합니다</h1>
+    <div class="cv-eng reveal d2" style="top:520px;max-width:1150px;line-height:1.65;">{{CLOSING_NOTE}}</div>
+    <div class="cv-pills reveal d3"><span>{{CTA}}</span></div>
+    <div class="deco reveal d2">
+      <div class="sq sq1"></div><div class="sq sq2"></div>
+      <div class="dia"><svg width="86" height="86" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg></div>
+    </div>
+  </section>
+
+  <!-- chrome lives INSIDE the stage so the red rule + logo + page counter scale & letterbox with the slides (aligned at every aspect ratio) -->
+  <div class="deck-chrome hide" id="chrome">
+    <div class="chrome-top"></div><div class="chrome-logo"></div>
+    <div class="chrome-bot"><span class="ch" id="cChap">01</span><span><b id="cPage">01</b> / <span id="cTotal">4</span> · {{DECK_FOOTER}}</span></div>
+  </div>
+  <div class="progress" id="progress"></div>
+  </main>
+</div>
+
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="편집 모드 (E)">✏️</button>
+<div class="edit-banner" id="editBanner">편집 모드 · 텍스트 클릭 후 수정 · Ctrl+S 저장</div>
+<div class="notes-panel" id="notesPanel"><div class="nt-head" id="ntHead"></div><div class="nt-body" id="ntBody"></div></div>
+<div class="notes-hint">N · 발표자 노트</div>
+
+<script>
+/* ===== controller: keyboard / wheel / touch nav + chrome + progress ===== */
+class Deck{
+  constructor(){this.slides=[...document.querySelectorAll('.slide')];this.i=0;
+    this.stage=document.getElementById('deckStage');this.chrome=document.getElementById('chrome');
+    const rescale=()=>this.scale();this.scale();
+    addEventListener('resize',rescale);addEventListener('orientationchange',rescale);addEventListener('load',rescale);
+    if(window.visualViewport)visualViewport.addEventListener('resize',rescale);
+    if(window.ResizeObserver)new ResizeObserver(rescale).observe(document.documentElement);
+    this.keys();this.wheel();this.touch();
+    document.getElementById('cTotal').textContent=this.slides.length;this.show(0);}
+  scale(){const d=document.documentElement,vw=d.clientWidth||innerWidth,vh=d.clientHeight||innerHeight;
+    if(!vw||!vh)return;const f=Math.min(vw/1920,vh/1080);   /* fit to the true layout viewport — stage never exceeds it, so it can't be clipped by overflow:hidden. letterbox, never crop/reflow */
+    this.stage.style.transform=`translate(${Math.round((vw-1920*f)/2)}px,${Math.round((vh-1080*f)/2)}px) scale(${f})`;}
+  show(n){this.i=Math.max(0,Math.min(n,this.slides.length-1));
+    this.slides.forEach((s,k)=>{const on=k===this.i;s.classList.toggle('active',on);s.classList.toggle('visible',on);});
+    const s=this.slides[this.i],hasCh=s.hasAttribute('data-ct');this.chrome.classList.toggle('hide',!hasCh);
+    if(hasCh){document.getElementById('cPage').textContent=String(this.i+1).padStart(2,'0');document.getElementById('cChap').textContent=s.getAttribute('data-ct')||'';}
+    document.getElementById('progress').style.width=((this.i+1)/this.slides.length*100)+'%';
+    if(window.updateNotes)window.updateNotes(this.i);}
+  next(){this.show(this.i+1);}prev(){this.show(this.i-1);}
+  keys(){addEventListener('keydown',e=>{if(document.body.classList.contains('editing')&&e.key!=='Escape')return;
+    if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();this.next();}
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
+    else if(e.key==='Home')this.show(0);else if(e.key==='End')this.show(this.slides.length-1);});}
+  wheel(){let t=0;addEventListener('wheel',e=>{const n=Date.now();if(n-t<700||Math.abs(e.deltaY)<24)return;t=n;e.deltaY>0?this.next():this.prev();},{passive:true});}
+  touch(){let x=0,y=0;addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:true});
+    addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))dx<0?this.next():this.prev();},{passive:true});}
+}
+const deck=new Deck();
+
+/* ===== inline editing (E) + autosave ===== */
+const SEL='h1,h2,p,.lead,.note,.dash li,.agenda li,.box,.chip,.stitle,.ssub,.bubble,.eyebrow,.acro,.cv,.cv-eng,.ci,.io-cell,.k,.stat';
+const editor={isActive:false,
+  toggle(){this.isActive=!this.isActive;document.body.classList.toggle('editing',this.isActive);
+    document.getElementById('editToggle').classList.toggle('active',this.isActive);document.getElementById('editBanner').classList.toggle('show',this.isActive);
+    document.querySelectorAll(SEL).forEach(el=>el.setAttribute('contenteditable',this.isActive));if(!this.isActive)this.save();},
+  save(){const d={};document.querySelectorAll('.slide').forEach((s,i)=>d[i]=s.innerHTML);try{localStorage.setItem('modulabsDeck',JSON.stringify(d));
+    const b=document.getElementById('editBanner');b.textContent='저장됨 ✓';b.classList.add('show');setTimeout(()=>{if(!editor.isActive)b.classList.remove('show');else b.textContent='편집 모드 · 텍스트 클릭 후 수정 · Ctrl+S 저장';},1200);}catch(e){}},
+  load(){try{const d=JSON.parse(localStorage.getItem('modulabsDeck')||'null');if(!d)return;document.querySelectorAll('.slide').forEach((s,i)=>{if(d[i])s.innerHTML=d[i];});}catch(e){}}};
+editor.load();
+const tgl=document.getElementById('editToggle'),hz=document.getElementById('editHotzone');let ht=null;
+tgl.addEventListener('click',()=>editor.toggle());hz.addEventListener('click',()=>editor.toggle());
+hz.addEventListener('mouseenter',()=>{clearTimeout(ht);tgl.classList.add('show');});
+hz.addEventListener('mouseleave',()=>{ht=setTimeout(()=>{if(!editor.isActive)tgl.classList.remove('show');},400);});
+tgl.addEventListener('mouseenter',()=>clearTimeout(ht));tgl.addEventListener('mouseleave',()=>{ht=setTimeout(()=>{if(!editor.isActive)tgl.classList.remove('show');},400);});
+addEventListener('keydown',e=>{if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))editor.toggle();
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();editor.save();}if(e.key==='Escape'&&editor.isActive)editor.toggle();});
+</script>
+
+<!-- ===== PRESENTER NOTES (one entry per slide; edit freely) ===== -->
+<script>
+const NOTES=[
+ {h:'01 · 표지', b:'발표 시작 인사 + 주제 한 줄 소개.'},
+ {h:'02 · Contents', b:'오늘 다룰 챕터 개요.'},
+ {h:'03 · 본문', b:'이 슬라이드의 핵심 설명을 여기에.'},
+ {h:'04 · 클로징', b:'마무리 + 다음 행동 안내.'},
+];
+window.updateNotes=function(i){const n=NOTES[i]||{h:'',b:''};document.getElementById('ntHead').textContent=n.h;document.getElementById('ntBody').textContent=n.b;};
+let notesOpen=false;
+addEventListener('keydown',e=>{if(e.target.getAttribute&&e.target.getAttribute('contenteditable'))return;
+  if(e.key==='n'||e.key==='N'){notesOpen=!notesOpen;document.getElementById('notesPanel').classList.toggle('show',notesOpen);}});
+updateNotes(deck.i);
+</script>
+</body>
+</html>
