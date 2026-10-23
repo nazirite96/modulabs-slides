@@ -46,6 +46,16 @@ Because the canvas is a fixed 1920×1080 (not a phone), size components **genero
 ## Animation
 - One staggered page-load reveal per slide via `.reveal` + `.d1…d9` delay classes. Use `.new` (yellow flash) to mark elements added on a build-up slide. Keep motion subtle.
 
+## Presenter tools (keep)
+- `N` toggles the bottom notes panel; `P` / `⌘P` / `Ctrl+P` opens a second, synced presenter window (current + next slide previews, the script, a timer, 가−/가+ font size). Both read the same `NOTES` array.
+- Notes keep their line breaks (`white-space:pre-line` in the panel, `pre-wrap` in the window). Separate paragraphs with `\n\n`.
+- The wheel handler ignores events over `#notesPanel`, so scrolling a long note never flips the slide; each slide's note opens scrolled to the top.
+- The notes panel casts its shadow only while open (`.notes-panel.show`). On the closed, off-screen panel the shadow bleeds a dark band across the bottom of every slide.
+- ⌘P / Ctrl+P is taken over for the presenter window, edit mode included. Print/PDF goes through the deck window's browser menu (macOS File → Print; Chrome/Edge ⋮ / ⋯ → Print), Chrome's system print dialog (Ctrl+Shift+P on Windows/Linux, ⌥⌘P on macOS), or the headless `--print-to-pdf` command.
+- `P` and `N` also match on `e.code` (`KeyP` / `KeyN`), so they work while the Korean IME is on.
+- Slide previews in the presenter window ignore clicks (`pointer-events:none`), so a link inside a slide can't navigate that window away. If it ever stops showing the presenter view, pressing `P` again opens a fresh one.
+- A shared `<symbol>` / `<marker>` / gradient sprite outside the slides goes in a zero-size element with `data-sprite` (`<svg data-sprite width="0" height="0" style="position:absolute" aria-hidden="true">`), so the presenter previews can resolve `<use href="#…">` and `url(#…)`.
+
 ## Do / Don't
 - DO commit to coral; dominant brand color with crisp white space.
 - DO recolor any diagram to the brand palette (outputs = soft-coral, embeddings = light pink, anchors = navy, tokens = white).
