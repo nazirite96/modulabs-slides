@@ -52,8 +52,8 @@ Determine: deck topic/title, the section/chapter breakdown, and per-slide conten
 5. **Presenter notes:** update the `NOTES` array (one `{h, b}` per slide, in order) so `N` shows a script per slide. **Verify `NOTES.length === slide count`.**
 6. Keep nav (arrows/space/wheel/swipe), edit mode (`E`), and notes (`N`) intact.
 
-## Step 5 — Density & overflow
-Author at 1920×1080. If a slide gets crowded, **split it into more slides** (and add matching `NOTES` entries) rather than shrinking text. Content must clear the header — keep `.pad` top padding ≥230px on `.shead` slides.
+## Step 5 — Density & sizing (fill the fixed canvas)
+This is a **fixed 16:9 canvas, not a responsive/phone layout** — size components generously so they fill it. Timid sizing reads as tiny across a room and leaves the slide mostly empty. Keep body text ≥~28px (never below ~22px); use the template defaults (`.stitle` 56 · `.dash li` 30 · `.note` 27 · `.box` 22 — see `design.md` → *Sizing*). Use the full width (wide blocks, `.grid2`) rather than a narrow column with a big void beside it; `.pad` already vertically centers a light slide. If a slide feels empty, **add substance or merge**; if it gets crowded, **split it into more slides** (and add matching `NOTES` entries) rather than shrinking text. Keep `.pad` top padding ≥230px on `.shead` slides so content clears the header.
 
 ## Step 6 — Verify with headless screenshots (required)
 Render the riskiest slides (cover, a header/diagram slide, the densest slide, closing) and inspect for overflow / overlap / broken glyphs / missing logo. **Render from inside the deck's folder (or with an absolute `file://` path to it) so the relative `assets/` paths resolve** — a temp copy in `/tmp` will show a broken logo and missing images:
@@ -67,10 +67,19 @@ for N in 0 2 5 LAST; do
 done
 rm -f _v*.html
 ```
-Read each PNG; fix issues; re-verify.
+Read each PNG; fix issues; re-verify. Render at a **16:9 window** (e.g. `1920,1080` or `1280,720`) — that's the only supported ratio. On each slide check: no overflow/overlap, no broken glyphs, logo present, and **the content fills the canvas** (body isn't a small cluster stranded in a sea of empty space — if it is, go back to Step 5 and enlarge/add/merge).
+
+(Aspect ratio itself needs no per-deck check: the CSS 16:9 frame guarantees it. Off-16:9 windows just letterbox — not a layout to verify.)
 
 ## Step 7 — Deliver
 `open <name>.html`. Tell the user: file path, slide count, and shortcuts — **arrows/space/wheel/swipe** to navigate, **N** presenter notes, **E** inline edit (Ctrl+S save). Note the deck depends on the files in `assets/` — keep `assets/` beside the HTML when moving/exporting (PDF export or Vercel deploy: include the folder).
+
+**PDF export** (the template's `@page{size:1920px 1080px}` rule keeps pages exactly 16:9 — never remove it):
+```bash
+"$CHROME" --headless=new --disable-gpu --no-pdf-header-footer \
+  --print-to-pdf=<name>.pdf "file://$PWD/<name>.html"
+```
+(or Cmd+P in the browser with margins "None"). Verify the output: pages must be 1920×1080 (16:9), one slide per page, backgrounds included.
 
 ### Converting a PPTX/PDF into a deck (preserve & rearrange assets)
 - Extract: `unzip -o file.pptx -d /tmp/ref`. Slides are `ppt/slides/slideN.xml`; per-slide images are listed in `ppt/slides/_rels/slideN.xml.rels`; all media is in `ppt/media/`.
@@ -103,7 +112,7 @@ cp "${CLAUDE_SKILL_DIR}/templates/modulabs-red/design.md"     "$TPL/design.md"
 ```
 Then edit `$TPL/template.html`:
 - Rewrite the `:root` CSS variables to the new palette and swap the Google Fonts `<link>` + `--sans`/`--lat`/`--mono`.
-- Adapt the cover / section / closing slides, the header chrome, the logo (`mask-image` / `background`) and the deco cluster to the reference. **Keep the mandatory fixed-stage base, the `.slide`/`.active`/`.visible` switching, and the nav/edit/notes JS intact** (don't break the controller).
+- Adapt the cover / section / closing slides, the header chrome, the logo (`mask-image` / `background`) and the deco cluster to the reference. **Keep the mandatory fixed-stage base, the `@page`/`@media print` block, the `.slide`/`.active`/`.visible` switching, and the nav/edit/notes JS intact** (don't break the controller or the 16:9 PDF export).
 - Update the asset filename(s) the CSS/HTML references to whatever you put in `$TPL/assets/`.
 
 Rewrite `$TPL/design.md` to document the new palette, fonts, signature elements, and component classes — this is the file the generator reads at deck time, so it must be accurate.

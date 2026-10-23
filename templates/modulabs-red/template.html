@@ -27,28 +27,36 @@
   --sans:'Noto Sans KR',sans-serif; --lat:'Archivo',sans-serif; --mono:'JetBrains Mono',monospace;
 }
 
-/* ===== MANDATORY FIXED-STAGE BASE (do not change) ===== */
+/* ===== MANDATORY FIXED-STAGE BASE (do not change) =====
+   NOT responsive: the deck is a fixed 16:9 (1920×1080) artifact. The .deck-frame is the
+   largest 16:9 box that fits the window (pure CSS); .deck-stage is scaled to fill it (one JS line).
+   Off-16:9 windows just get gray letterbox bands — that's a side effect, not a supported layout. */
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg);}
-.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);display:flex;align-items:center;justify-content:center;}
+.deck-frame{position:relative;width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16 / 9;overflow:hidden;}
 .deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--bg);}
 .slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;
   background:linear-gradient(118deg,#fff 0%, var(--bg) 100%);}
 .slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
 img,video,canvas,svg{max-width:100%;max-height:100%;}
+@page{size:1920px 1080px;margin:0;}   /* PDF export stays exactly 16:9 — without this the browser prints Letter/A4 portrait and the ratio breaks */
 @media print{
   html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
-  .deck-viewport{position:static;overflow:visible;}.deck-stage{position:static;width:auto;height:auto;transform:none!important;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .reveal,.pop{opacity:1!important;transform:none!important;}   /* entrance animations are gated on .slide.visible — without this every non-active slide prints with empty body */
+  .deck-viewport,.deck-frame{position:static;display:block;width:auto;overflow:visible;aspect-ratio:auto;}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;}
   .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
-  .slide:last-child{break-after:auto;page-break-after:auto;}.deck-chrome,.edit-toggle,.edit-hotzone,.notes-panel,.notes-hint{display:none!important;}
+  .slide:last-of-type{break-after:auto;page-break-after:auto;}   /* :last-child never matches — .deck-chrome/.progress follow the slides — and leaves a blank trailing PDF page */.deck-chrome,.edit-toggle,.edit-hotzone,.notes-panel,.notes-hint{display:none!important;}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
 
 /* ===== GLOBAL ===== */
 *{box-sizing:border-box;}
 .slide{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;}
-.pad{position:absolute;inset:0;padding:230px 104px 96px;}   /* clears the header chrome */
+.pad{position:absolute;inset:0;padding:230px 104px 96px;display:flex;flex-direction:column;justify-content:center;gap:30px;}   /* clears the header chrome; vertically centers body so light slides don't jam at the top with an empty bottom. For a top-aligned layout use justify-content:flex-start inline. */
 .mono{font-family:var(--mono);}
-.lead{font-size:25px;line-height:1.6;color:var(--ink2);}.lead b{color:var(--ink);font-weight:600;}
+.lead{font-size:31px;line-height:1.55;color:var(--ink2);}.lead b{color:var(--ink);font-weight:600;}
 
 /* faint diagonal watermark (template signature) — drop one per content slide */
 .watermark{position:absolute;left:0;top:0;bottom:0;width:580px;pointer-events:none;
@@ -56,10 +64,10 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 
 /* ===== CONTENT HEADER (top-left) ===== */
 .shead{position:absolute;top:104px;left:104px;right:104px;}
-.shead .eyebrow{font-family:var(--mono);font-size:18px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:500;margin-bottom:12px;}
-.stitle{font-family:var(--sans);font-weight:700;font-size:46px;line-height:1.06;color:var(--ink);letter-spacing:-.01em;}
+.shead .eyebrow{font-family:var(--mono);font-size:20px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:500;margin-bottom:12px;}
+.stitle{font-family:var(--sans);font-weight:700;font-size:56px;line-height:1.06;color:var(--ink);letter-spacing:-.01em;}
 .stitle .k{color:var(--red);}
-.ssub{font-size:23px;color:var(--ink2);margin-top:8px;}
+.ssub{font-size:27px;color:var(--ink2);margin-top:10px;}
 
 /* the BERT-style acronym lockup (B E R T letters accented) */
 .acro{font-family:var(--lat);font-weight:700;font-size:40px;color:var(--ink);}
@@ -79,20 +87,20 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 
 /* ===== COMPONENT LIBRARY ===== */
 .row{display:flex;}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
-.box{border:1.5px solid #ddd6d6;background:#fff;border-radius:10px;padding:14px 16px;font-size:18px;text-align:center;}
+.box{border:1.5px solid #ddd6d6;background:#fff;border-radius:10px;padding:18px 20px;font-size:22px;text-align:center;}
 .fill{background:var(--navy);color:#fff;border:none;}
 .arr{font-family:var(--mono);color:var(--red);font-size:26px;font-weight:700;}.arr.ink{color:var(--ink);}
 /* dash bullet list */
 .dash{list-style:none;margin:0;padding:0;}
-.dash li{position:relative;padding:14px 0 14px 38px;font-size:25px;line-height:1.4;border-bottom:1px solid var(--line);}
+.dash li{position:relative;padding:17px 0 17px 42px;font-size:30px;line-height:1.4;border-bottom:1px solid var(--line);}
 .dash li:last-child{border-bottom:none;}.dash li::before{content:"—";position:absolute;left:0;color:var(--red);font-weight:700;}
 .dash li.strike{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--red);}
-.dash li small{display:block;font-size:18px;color:var(--muted);margin-top:4px;text-decoration:none;}
+.dash li small{display:block;font-size:21px;color:var(--muted);margin-top:5px;text-decoration:none;}
 /* numbered agenda */
 .agenda{list-style:none;margin:0;padding:0;}
-.agenda li{display:flex;gap:28px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--line);font-size:34px;}
-.agenda li .n{font-family:var(--mono);font-size:24px;color:var(--red);min-width:40px;font-weight:600;}
-.agenda li small{font-size:19px;color:var(--muted);margin-left:8px;}
+.agenda li{display:flex;gap:30px;align-items:baseline;padding:26px 0;border-bottom:1px solid var(--line);font-size:40px;}
+.agenda li .n{font-family:var(--mono);font-size:29px;color:var(--red);min-width:46px;font-weight:600;}
+.agenda li small{font-size:23px;color:var(--muted);margin-left:8px;}
 /* rounded "BERT-like" model box */
 .bert{border:2.5px solid var(--coral);border-radius:14px;background:#fff;box-shadow:0 8px 26px rgba(246,107,110,.14);
   display:flex;align-items:center;justify-content:center;font-family:var(--lat);font-weight:800;color:var(--red);position:relative;}
@@ -128,14 +136,14 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 .emb .ps{background:#eceef3;border:1.5px solid #cfd3dc;}
 .emb .plus{font-family:var(--mono);color:var(--red);font-size:22px;text-align:center;}
 /* callout note (left coral bar, white card) */
-.note{border-left:5px solid var(--red);background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.05);border-radius:0 12px 12px 0;padding:18px 24px;font-size:22px;line-height:1.5;}
+.note{border-left:6px solid var(--red);background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.05);border-radius:0 12px 12px 0;padding:24px 30px;font-size:27px;line-height:1.5;}
 .note b{color:var(--red);}
 /* speech bubble */
 .bubble{position:relative;background:var(--coral);color:#fff;border-radius:18px;padding:22px 30px;font-family:var(--lat);font-weight:700;font-size:30px;}
 .bubble::after{content:"";position:absolute;left:54px;bottom:-18px;border:14px solid transparent;border-top-color:var(--coral);border-bottom:0;}
 /* big stat */
-.stat .v{font-family:var(--lat);font-weight:800;font-size:84px;line-height:.9;color:var(--ink);}.stat .v .red{color:var(--red);}
-.stat .k{font-family:var(--mono);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:10px;}
+.stat .v{font-family:var(--lat);font-weight:800;font-size:96px;line-height:.9;color:var(--ink);}.stat .v .red{color:var(--red);}
+.stat .k{font-family:var(--mono);font-size:19px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:12px;}
 
 /* ===== REVEALS (re-trigger when slide becomes visible) ===== */
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
@@ -162,8 +170,8 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 /* Contents/section style on coral: white title + right-aligned list */
 .cover .ctitle{position:absolute;left:96px;top:120px;color:#fff;font-family:var(--lat);font-weight:800;font-size:64px;}
 .cover .clist{position:absolute;right:120px;top:130px;width:760px;color:#fff;}
-.cover .clist .ci{display:flex;gap:24px;padding:16px 0;font-size:28px;}
-.cover .clist .ci b{min-width:150px;font-weight:700;}
+.cover .clist .ci{display:flex;gap:26px;padding:19px 0;font-size:33px;}
+.cover .clist .ci b{min-width:160px;font-weight:700;}
 
 /* ===== EDIT MODE + PRESENTER NOTES (optional; keep) ===== */
 .edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
@@ -180,6 +188,7 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 </head>
 <body>
 <div class="deck-viewport">
+  <div class="deck-frame" id="deckFrame">
   <main class="deck-stage" id="deckStage">
 
   <!-- ============ COVER (coral) ============ -->
@@ -240,13 +249,14 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
     </div>
   </section>
 
-  <!-- chrome lives INSIDE the stage so the red rule + logo + page counter scale & letterbox with the slides (aligned at every aspect ratio) -->
+  <!-- chrome lives INSIDE the stage so the red rule + logo + page counter scale with the slides (authored in 1920×1080 coords) -->
   <div class="deck-chrome hide" id="chrome">
     <div class="chrome-top"></div><div class="chrome-logo"></div>
     <div class="chrome-bot"><span class="ch" id="cChap">01</span><span><b id="cPage">01</b> / <span id="cTotal">4</span> · {{DECK_FOOTER}}</span></div>
   </div>
   <div class="progress" id="progress"></div>
   </main>
+  </div>
 </div>
 
 <div class="edit-hotzone" id="editHotzone"></div>
@@ -259,16 +269,14 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 /* ===== controller: keyboard / wheel / touch nav + chrome + progress ===== */
 class Deck{
   constructor(){this.slides=[...document.querySelectorAll('.slide')];this.i=0;
-    this.stage=document.getElementById('deckStage');this.chrome=document.getElementById('chrome');
+    this.stage=document.getElementById('deckStage');this.frame=document.getElementById('deckFrame');this.chrome=document.getElementById('chrome');
     const rescale=()=>this.scale();this.scale();
     addEventListener('resize',rescale);addEventListener('orientationchange',rescale);addEventListener('load',rescale);
     if(window.visualViewport)visualViewport.addEventListener('resize',rescale);
-    if(window.ResizeObserver)new ResizeObserver(rescale).observe(document.documentElement);
     this.keys();this.wheel();this.touch();
     document.getElementById('cTotal').textContent=this.slides.length;this.show(0);}
-  scale(){const d=document.documentElement,vw=d.clientWidth||innerWidth,vh=d.clientHeight||innerHeight;
-    if(!vw||!vh)return;const f=Math.min(vw/1920,vh/1080);   /* fit to the true layout viewport — stage never exceeds it, so it can't be clipped by overflow:hidden. letterbox, never crop/reflow */
-    this.stage.style.transform=`translate(${Math.round((vw-1920*f)/2)}px,${Math.round((vh-1080*f)/2)}px) scale(${f})`;}
+  /* 16:9 only: CSS sizes .deck-frame as the biggest 16:9 box in the window; just scale the 1920px stage to fill it. No reflow, no aspect-ratio math. */
+  scale(){const w=this.frame.clientWidth;if(w)this.stage.style.transform='scale('+(w/1920)+')';}
   show(n){this.i=Math.max(0,Math.min(n,this.slides.length-1));
     this.slides.forEach((s,k)=>{const on=k===this.i;s.classList.toggle('active',on);s.classList.toggle('visible',on);});
     const s=this.slides[this.i],hasCh=s.hasAttribute('data-ct');this.chrome.classList.toggle('hide',!hasCh);
