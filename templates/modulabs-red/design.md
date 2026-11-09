@@ -30,15 +30,31 @@ Brand-faithful spec extracted from the official Modulabs red PPT template. Use t
 `.shead/.eyebrow/.stitle` header · `.acro` (B**E**RT letter lockup) · `.box`/`.fill` · `.dash`/`.agenda` lists · `.bert`/`.io-bert` model boxes · `.chip(.mask/.cls)` tokens · `.io-row`/`.io-cell` + `.c-out/.c-c/.c-e/.c-tok` (Devlin I/O) · `.stack`/`.blk(.attn/.ff)` (encoder/decoder/Base-Large stacks) · `.emb`(`.tk/.sg/.ps`) embedding-sum table · `.note` callout · `.bubble` speech bubble · `.stat` big number · `.cv/.cv-eng/.cv-pills/.deco` cover · `.ctitle/.clist` contents.
 
 ## Fixed-stage rules (non-negotiable)
-- Author every slide at **1920×1080**; the whole `.deck-stage` scales uniformly to the viewport (JS handles it). Never reflow per device — letterbox instead.
-- The `scale()` controller fits via `Math.min(vw/1920, vh/1080)` so the deck is **bullet-proof at any aspect ratio** (ultrawide / portrait / square → clean gray letterbox, never crop or overflow). It reads `window.visualViewport` (falls back to `innerWidth/Height`), rounds the centering translate, and re-fits on `resize` + `orientationchange` + `load` + `visualViewport` resize (handles mobile URL-bar changes). **Keep this controller — don't simplify it back to a plain `innerWidth/innerHeight` resize handler.**
+- **This deck is 16:9 only — NOT responsive.** Author every slide at **1920×1080**. It never reflows: on a smaller/larger screen the whole stage is zoomed uniformly (proportions preserved), never re-laid-out.
+- **How the 16:9 fit works (keep it simple):** CSS sizes `.deck-frame` as the largest 16:9 box that fits the window (`width:min(100vw, calc(100vh*16/9)); aspect-ratio:16/9`), the flex `.deck-viewport` centers it, and `scale()` is a **single line** — `stage.transform = scale(frame.clientWidth/1920)`. A window that isn't 16:9 just gets gray letterbox bands; that's a harmless side effect, not a layout to design for. **Don't re-add multi-aspect-ratio math** (`Math.min(vw/1920, vh/1080)`, manual centering translate, ResizeObserver) — it was removed on purpose; the CSS frame handles fitting.
 - Switch slides with `.active`/`.visible` (visibility/opacity), never `display`.
-- **Keep `.deck-chrome` (top red rule + logo + page counter) and `.progress` INSIDE `.deck-stage`** — they're authored in 1920×1080 coordinates and must scale + letterbox with the slides. If they sit outside the stage (at raw viewport coords) they only line up at exactly 1920×1080 and drift off-center at every other aspect ratio. Screen-fixed tool UI (edit button, notes panel, hint) stays outside the stage.
-- Keep content inside the stage; if a slide overflows, **split into more slides** rather than shrinking text below comfortable size.
-- Content slides: keep `.pad` top padding ≥230px so content clears the header chrome.
+- **Keep `.deck-chrome` (top red rule + logo + page counter) and `.progress` INSIDE `.deck-stage`** — they're authored in 1920×1080 coordinates and scale with the slides. Screen-fixed tool UI (edit button, notes panel, hint) stays outside the stage.
+- Content slides: keep `.pad` top padding ≥230px so content clears the header chrome. `.pad` is a centered flex column — light slides sit in the optical center instead of jamming at the top.
+- **Keep `@page{size:1920px 1080px;margin:0}` + the `@media print` block** (with `print-color-adjust:exact` and `.reveal,.pop{opacity:1}`) — they make browser/headless PDF export come out one slide per exactly-16:9 page with backgrounds and visible body. Without `@page` the browser prints Letter/A4 portrait and the ratio breaks.
+
+## Sizing — fill the fixed canvas (don't leave it sparse)
+Because the canvas is a fixed 1920×1080 (not a phone), size components **generously** — timid sizing reads as tiny across a room and leaves the slide 90% empty. Default component sizes (already in `template.html`): `.stitle` 56px · `.eyebrow` 20px · `.ssub` 27px · `.lead` 31px · `.dash li` 30px · `.agenda li` 40px · `.note` 27px · `.box` 22px · `.stat .v` 96px · `.clist .ci` 33px. Body text floor **~28px**; never go below ~22px.
+- **Use the whole width and height.** Prefer wide content blocks and 2-column (`.grid2`) layouts over a narrow left column with a big void on the right. Aim for content to occupy the majority of the below-header band, not a small cluster.
+- If a slide feels empty, **add substance** (a supporting note, a diagram, a second column) — or merge two thin slides. If it overflows, **split into more slides** rather than shrinking text below the floor.
+- The tightly-tuned BERT-diagram primitives (`.io-cell`/`.blk`/`.emb`/`.chip`) are laid out relative to each other — scale a whole diagram with a wrapper transform if needed, rather than editing those base sizes piecemeal.
 
 ## Animation
 - One staggered page-load reveal per slide via `.reveal` + `.d1…d9` delay classes. Use `.new` (yellow flash) to mark elements added on a build-up slide. Keep motion subtle.
+
+## Presenter tools (keep)
+- `N` toggles the bottom notes panel; `P` / `⌘P` / `Ctrl+P` opens a second, synced presenter window (current + next slide previews, the script, a timer, 가−/가+ font size). Both read the same `NOTES` array.
+- Notes keep their line breaks (`white-space:pre-line` in the panel, `pre-wrap` in the window). Separate paragraphs with `\n\n`.
+- The wheel handler ignores events over `#notesPanel`, so scrolling a long note never flips the slide; each slide's note opens scrolled to the top.
+- The notes panel casts its shadow only while open (`.notes-panel.show`). On the closed, off-screen panel the shadow bleeds a dark band across the bottom of every slide.
+- ⌘P / Ctrl+P is taken over for the presenter window, edit mode included. Print/PDF goes through the deck window's browser menu (macOS File → Print; Chrome/Edge ⋮ / ⋯ → Print), Chrome's system print dialog (Ctrl+Shift+P on Windows/Linux, ⌥⌘P on macOS), or the headless `--print-to-pdf` command.
+- `P` and `N` also match on `e.code` (`KeyP` / `KeyN`), so they work while the Korean IME is on.
+- Slide previews in the presenter window ignore clicks (`pointer-events:none`), so a link inside a slide can't navigate that window away. If it ever stops showing the presenter view, pressing `P` again opens a fresh one.
+- A shared `<symbol>` / `<marker>` / gradient sprite outside the slides goes in a zero-size element with `data-sprite` (`<svg data-sprite width="0" height="0" style="position:absolute" aria-hidden="true">`), so the presenter previews can resolve `<use href="#…">` and `url(#…)`.
 
 ## Do / Don't
 - DO commit to coral; dominant brand color with crisp white space.

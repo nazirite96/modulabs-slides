@@ -27,28 +27,36 @@
   --sans:'Noto Sans KR',sans-serif; --lat:'Archivo',sans-serif; --mono:'JetBrains Mono',monospace;
 }
 
-/* ===== MANDATORY FIXED-STAGE BASE (do not change) ===== */
+/* ===== MANDATORY FIXED-STAGE BASE (do not change) =====
+   NOT responsive: the deck is a fixed 16:9 (1920×1080) artifact. The .deck-frame is the
+   largest 16:9 box that fits the window (pure CSS); .deck-stage is scaled to fill it (one JS line).
+   Off-16:9 windows just get gray letterbox bands — that's a side effect, not a supported layout. */
 html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg);}
-.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg);display:flex;align-items:center;justify-content:center;}
+.deck-frame{position:relative;width:min(100vw,calc(100vh * 16 / 9));aspect-ratio:16 / 9;overflow:hidden;}
 .deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--bg);}
 .slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;
   background:linear-gradient(118deg,#fff 0%, var(--bg) 100%);}
 .slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
 img,video,canvas,svg{max-width:100%;max-height:100%;}
+@page{size:1920px 1080px;margin:0;}   /* PDF export stays exactly 16:9 — without this the browser prints Letter/A4 portrait and the ratio breaks */
 @media print{
   html,body{width:1920px;height:auto;overflow:visible;background:#fff;}
-  .deck-viewport{position:static;overflow:visible;}.deck-stage{position:static;width:auto;height:auto;transform:none!important;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .reveal,.pop{opacity:1!important;transform:none!important;}   /* entrance animations are gated on .slide.visible — without this every non-active slide prints with empty body */
+  .deck-viewport,.deck-frame{position:static;display:block;width:auto;overflow:visible;aspect-ratio:auto;}
+  .deck-stage{position:static;width:auto;height:auto;transform:none!important;}
   .slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}
-  .slide:last-child{break-after:auto;page-break-after:auto;}.deck-chrome,.edit-toggle,.edit-hotzone,.notes-panel,.notes-hint{display:none!important;}
+  .slide:last-of-type{break-after:auto;page-break-after:auto;}   /* :last-child never matches — .deck-chrome/.progress follow the slides — and leaves a blank trailing PDF page */.deck-chrome,.edit-toggle,.edit-hotzone,.notes-panel,.notes-hint{display:none!important;}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
 
 /* ===== GLOBAL ===== */
 *{box-sizing:border-box;}
 .slide{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;}
-.pad{position:absolute;inset:0;padding:230px 104px 96px;}   /* clears the header chrome */
+.pad{position:absolute;inset:0;padding:230px 104px 96px;display:flex;flex-direction:column;justify-content:center;gap:30px;}   /* clears the header chrome; vertically centers body so light slides don't jam at the top with an empty bottom. For a top-aligned layout use justify-content:flex-start inline. */
 .mono{font-family:var(--mono);}
-.lead{font-size:25px;line-height:1.6;color:var(--ink2);}.lead b{color:var(--ink);font-weight:600;}
+.lead{font-size:31px;line-height:1.55;color:var(--ink2);}.lead b{color:var(--ink);font-weight:600;}
 
 /* faint diagonal watermark (template signature) — drop one per content slide */
 .watermark{position:absolute;left:0;top:0;bottom:0;width:580px;pointer-events:none;
@@ -56,10 +64,10 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 
 /* ===== CONTENT HEADER (top-left) ===== */
 .shead{position:absolute;top:104px;left:104px;right:104px;}
-.shead .eyebrow{font-family:var(--mono);font-size:18px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:500;margin-bottom:12px;}
-.stitle{font-family:var(--sans);font-weight:700;font-size:46px;line-height:1.06;color:var(--ink);letter-spacing:-.01em;}
+.shead .eyebrow{font-family:var(--mono);font-size:20px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:500;margin-bottom:12px;}
+.stitle{font-family:var(--sans);font-weight:700;font-size:56px;line-height:1.06;color:var(--ink);letter-spacing:-.01em;}
 .stitle .k{color:var(--red);}
-.ssub{font-size:23px;color:var(--ink2);margin-top:8px;}
+.ssub{font-size:27px;color:var(--ink2);margin-top:10px;}
 
 /* the BERT-style acronym lockup (B E R T letters accented) */
 .acro{font-family:var(--lat);font-weight:700;font-size:40px;color:var(--ink);}
@@ -79,20 +87,20 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 
 /* ===== COMPONENT LIBRARY ===== */
 .row{display:flex;}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
-.box{border:1.5px solid #ddd6d6;background:#fff;border-radius:10px;padding:14px 16px;font-size:18px;text-align:center;}
+.box{border:1.5px solid #ddd6d6;background:#fff;border-radius:10px;padding:18px 20px;font-size:22px;text-align:center;}
 .fill{background:var(--navy);color:#fff;border:none;}
 .arr{font-family:var(--mono);color:var(--red);font-size:26px;font-weight:700;}.arr.ink{color:var(--ink);}
 /* dash bullet list */
 .dash{list-style:none;margin:0;padding:0;}
-.dash li{position:relative;padding:14px 0 14px 38px;font-size:25px;line-height:1.4;border-bottom:1px solid var(--line);}
+.dash li{position:relative;padding:17px 0 17px 42px;font-size:30px;line-height:1.4;border-bottom:1px solid var(--line);}
 .dash li:last-child{border-bottom:none;}.dash li::before{content:"—";position:absolute;left:0;color:var(--red);font-weight:700;}
 .dash li.strike{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--red);}
-.dash li small{display:block;font-size:18px;color:var(--muted);margin-top:4px;text-decoration:none;}
+.dash li small{display:block;font-size:21px;color:var(--muted);margin-top:5px;text-decoration:none;}
 /* numbered agenda */
 .agenda{list-style:none;margin:0;padding:0;}
-.agenda li{display:flex;gap:28px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--line);font-size:34px;}
-.agenda li .n{font-family:var(--mono);font-size:24px;color:var(--red);min-width:40px;font-weight:600;}
-.agenda li small{font-size:19px;color:var(--muted);margin-left:8px;}
+.agenda li{display:flex;gap:30px;align-items:baseline;padding:26px 0;border-bottom:1px solid var(--line);font-size:40px;}
+.agenda li .n{font-family:var(--mono);font-size:29px;color:var(--red);min-width:46px;font-weight:600;}
+.agenda li small{font-size:23px;color:var(--muted);margin-left:8px;}
 /* rounded "BERT-like" model box */
 .bert{border:2.5px solid var(--coral);border-radius:14px;background:#fff;box-shadow:0 8px 26px rgba(246,107,110,.14);
   display:flex;align-items:center;justify-content:center;font-family:var(--lat);font-weight:800;color:var(--red);position:relative;}
@@ -128,14 +136,14 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 .emb .ps{background:#eceef3;border:1.5px solid #cfd3dc;}
 .emb .plus{font-family:var(--mono);color:var(--red);font-size:22px;text-align:center;}
 /* callout note (left coral bar, white card) */
-.note{border-left:5px solid var(--red);background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.05);border-radius:0 12px 12px 0;padding:18px 24px;font-size:22px;line-height:1.5;}
+.note{border-left:6px solid var(--red);background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.05);border-radius:0 12px 12px 0;padding:24px 30px;font-size:27px;line-height:1.5;}
 .note b{color:var(--red);}
 /* speech bubble */
 .bubble{position:relative;background:var(--coral);color:#fff;border-radius:18px;padding:22px 30px;font-family:var(--lat);font-weight:700;font-size:30px;}
 .bubble::after{content:"";position:absolute;left:54px;bottom:-18px;border:14px solid transparent;border-top-color:var(--coral);border-bottom:0;}
 /* big stat */
-.stat .v{font-family:var(--lat);font-weight:800;font-size:84px;line-height:.9;color:var(--ink);}.stat .v .red{color:var(--red);}
-.stat .k{font-family:var(--mono);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:10px;}
+.stat .v{font-family:var(--lat);font-weight:800;font-size:96px;line-height:.9;color:var(--ink);}.stat .v .red{color:var(--red);}
+.stat .k{font-family:var(--mono);font-size:19px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:12px;}
 
 /* ===== REVEALS (re-trigger when slide becomes visible) ===== */
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
@@ -162,8 +170,8 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 /* Contents/section style on coral: white title + right-aligned list */
 .cover .ctitle{position:absolute;left:96px;top:120px;color:#fff;font-family:var(--lat);font-weight:800;font-size:64px;}
 .cover .clist{position:absolute;right:120px;top:130px;width:760px;color:#fff;}
-.cover .clist .ci{display:flex;gap:24px;padding:16px 0;font-size:28px;}
-.cover .clist .ci b{min-width:150px;font-weight:700;}
+.cover .clist .ci{display:flex;gap:26px;padding:19px 0;font-size:33px;}
+.cover .clist .ci b{min-width:160px;font-weight:700;}
 
 /* ===== EDIT MODE + PRESENTER NOTES (optional; keep) ===== */
 .edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
@@ -171,15 +179,16 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
 .edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}.edit-toggle.active{background:var(--red);}
 .editing [contenteditable]:hover{outline:2px dashed var(--red);outline-offset:3px;}.editing [contenteditable]:focus{outline:2px solid var(--red);outline-offset:3px;}
 .edit-banner{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:var(--mono);font-size:13px;padding:9px 18px;border-radius:30px;z-index:10001;opacity:0;transition:opacity .3s;}.edit-banner.show{opacity:1;}
-.notes-panel{position:fixed;left:0;right:0;bottom:0;max-height:40vh;overflow:auto;background:rgba(24,21,18,.97);color:#f3f0ea;padding:24px 48px 30px;transform:translateY(101%);transition:transform .35s var(--ease);z-index:9000;box-shadow:0 -12px 44px rgba(0,0,0,.35);}
-.notes-panel.show{transform:none;}
+.notes-panel{position:fixed;left:0;right:0;bottom:0;max-height:40vh;overflow:auto;background:rgba(24,21,18,.97);color:#f3f0ea;padding:24px 48px 30px;transform:translateY(101%);transition:transform .35s var(--ease);z-index:9000;}
+.notes-panel.show{transform:none;box-shadow:0 -12px 44px rgba(0,0,0,.35);}   /* shadow only while open — on the closed, off-screen panel it bleeds a dark band across the bottom of every slide */
 .notes-panel .nt-head{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--red-soft);margin-bottom:12px;}
-.notes-panel .nt-body{font-size:23px;line-height:1.7;max-width:1500px;}
+.notes-panel .nt-body{font-size:23px;line-height:1.7;max-width:1500px;white-space:pre-line;}   /* NOTES paragraphs split with \n\n */
 .notes-hint{position:fixed;right:16px;bottom:14px;font-family:var(--mono);font-size:12px;color:var(--muted);z-index:8000;opacity:.55;}
 </style>
 </head>
 <body>
 <div class="deck-viewport">
+  <div class="deck-frame" id="deckFrame">
   <main class="deck-stage" id="deckStage">
 
   <!-- ============ COVER (coral) ============ -->
@@ -240,35 +249,34 @@ img,video,canvas,svg{max-width:100%;max-height:100%;}
     </div>
   </section>
 
-  <!-- chrome lives INSIDE the stage so the red rule + logo + page counter scale & letterbox with the slides (aligned at every aspect ratio) -->
+  <!-- chrome lives INSIDE the stage so the red rule + logo + page counter scale with the slides (authored in 1920×1080 coords) -->
   <div class="deck-chrome hide" id="chrome">
     <div class="chrome-top"></div><div class="chrome-logo"></div>
     <div class="chrome-bot"><span class="ch" id="cChap">01</span><span><b id="cPage">01</b> / <span id="cTotal">4</span> · {{DECK_FOOTER}}</span></div>
   </div>
   <div class="progress" id="progress"></div>
   </main>
+  </div>
 </div>
 
 <div class="edit-hotzone" id="editHotzone"></div>
 <button class="edit-toggle" id="editToggle" title="편집 모드 (E)">✏️</button>
 <div class="edit-banner" id="editBanner">편집 모드 · 텍스트 클릭 후 수정 · Ctrl+S 저장</div>
 <div class="notes-panel" id="notesPanel"><div class="nt-head" id="ntHead"></div><div class="nt-body" id="ntBody"></div></div>
-<div class="notes-hint">N · 발표자 노트</div>
+<div class="notes-hint">N · 발표자 노트 · P · 발표자 창</div>
 
 <script>
 /* ===== controller: keyboard / wheel / touch nav + chrome + progress ===== */
 class Deck{
   constructor(){this.slides=[...document.querySelectorAll('.slide')];this.i=0;
-    this.stage=document.getElementById('deckStage');this.chrome=document.getElementById('chrome');
+    this.stage=document.getElementById('deckStage');this.frame=document.getElementById('deckFrame');this.chrome=document.getElementById('chrome');
     const rescale=()=>this.scale();this.scale();
     addEventListener('resize',rescale);addEventListener('orientationchange',rescale);addEventListener('load',rescale);
     if(window.visualViewport)visualViewport.addEventListener('resize',rescale);
-    if(window.ResizeObserver)new ResizeObserver(rescale).observe(document.documentElement);
     this.keys();this.wheel();this.touch();
     document.getElementById('cTotal').textContent=this.slides.length;this.show(0);}
-  scale(){const d=document.documentElement,vw=d.clientWidth||innerWidth,vh=d.clientHeight||innerHeight;
-    if(!vw||!vh)return;const f=Math.min(vw/1920,vh/1080);   /* fit to the true layout viewport — stage never exceeds it, so it can't be clipped by overflow:hidden. letterbox, never crop/reflow */
-    this.stage.style.transform=`translate(${Math.round((vw-1920*f)/2)}px,${Math.round((vh-1080*f)/2)}px) scale(${f})`;}
+  /* 16:9 only: CSS sizes .deck-frame as the biggest 16:9 box in the window; just scale the 1920px stage to fill it. No reflow, no aspect-ratio math. */
+  scale(){const w=this.frame.clientWidth;if(w)this.stage.style.transform='scale('+(w/1920)+')';}
   show(n){this.i=Math.max(0,Math.min(n,this.slides.length-1));
     this.slides.forEach((s,k)=>{const on=k===this.i;s.classList.toggle('active',on);s.classList.toggle('visible',on);});
     const s=this.slides[this.i],hasCh=s.hasAttribute('data-ct');this.chrome.classList.toggle('hide',!hasCh);
@@ -280,7 +288,8 @@ class Deck{
     if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();this.next();}
     else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();this.prev();}
     else if(e.key==='Home')this.show(0);else if(e.key==='End')this.show(this.slides.length-1);});}
-  wheel(){let t=0;addEventListener('wheel',e=>{const n=Date.now();if(n-t<700||Math.abs(e.deltaY)<24)return;t=n;e.deltaY>0?this.next():this.prev();},{passive:true});}
+  /* a wheel over the open notes panel scrolls the panel; it must not flip slides */
+  wheel(){let t=0;addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('#notesPanel'))return;const n=Date.now();if(n-t<700||Math.abs(e.deltaY)<24)return;t=n;e.deltaY>0?this.next():this.prev();},{passive:true});}
   touch(){let x=0,y=0;addEventListener('touchstart',e=>{x=e.touches[0].clientX;y=e.touches[0].clientY;},{passive:true});
     addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))dx<0?this.next():this.prev();},{passive:true});}
 }
@@ -305,19 +314,133 @@ addEventListener('keydown',e=>{if((e.key==='e'||e.key==='E')&&!e.target.getAttri
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();editor.save();}if(e.key==='Escape'&&editor.isActive)editor.toggle();});
 </script>
 
-<!-- ===== PRESENTER NOTES (one entry per slide; edit freely) ===== -->
+<!-- ===== PRESENTER NOTES (one entry per slide; edit freely) =====
+     NOTES drives both the N panel and the P / ⌘P presenter window. b is that slide's script;
+     split paragraphs with \n\n (both views keep the line breaks). -->
 <script>
 const NOTES=[
  {h:'01 · 표지', b:'발표 시작 인사 + 주제 한 줄 소개.'},
  {h:'02 · Contents', b:'오늘 다룰 챕터 개요.'},
- {h:'03 · 본문', b:'이 슬라이드의 핵심 설명을 여기에.'},
+ {h:'03 · 본문', b:'이 슬라이드의 핵심 설명을 여기에.\n\n문단이 여러 개면 \\n\\n 으로 나눈다.'},
  {h:'04 · 클로징', b:'마무리 + 다음 행동 안내.'},
 ];
-window.updateNotes=function(i){const n=NOTES[i]||{h:'',b:''};document.getElementById('ntHead').textContent=n.h;document.getElementById('ntBody').textContent=n.b;};
+window.updateNotes=function(i){const n=NOTES[i]||{h:'',b:''};document.getElementById('ntHead').textContent=n.h;document.getElementById('ntBody').textContent=n.b;document.getElementById('notesPanel').scrollTop=0;};
 let notesOpen=false;
 addEventListener('keydown',e=>{if(e.target.getAttribute&&e.target.getAttribute('contenteditable'))return;
-  if(e.key==='n'||e.key==='N'){notesOpen=!notesOpen;document.getElementById('notesPanel').classList.toggle('show',notesOpen);}});
+  if((e.code==='KeyN'||e.key==='n'||e.key==='N')&&!e.metaKey&&!e.ctrlKey&&!e.altKey){notesOpen=!notesOpen;document.getElementById('notesPanel').classList.toggle('show',notesOpen);}});   /* e.code: works with the Korean IME on */
 updateNotes(deck.i);
+</script>
+
+<!-- ===== PRESENTER WINDOW (P / ⌘P / Ctrl+P; keep) =====
+     Opens a second window synced with this deck: current + next slide previews, the NOTES script,
+     a timer and font-size buttons. ⌘P / Ctrl+P is taken over, so print/PDF goes through the browser menu
+     (macOS File → Print; Chrome/Edge ⋮ / ⋯ → Print), Chrome's system print dialog (Ctrl+Shift+P on
+     Windows/Linux, ⌥⌘P on macOS), or headless --print-to-pdf.
+     Shared SVG defs outside the slides (a <symbol>/<marker>/<linearGradient> sprite referenced via
+     <use href="#…"> or url(#…)) must sit in a zero-size element with data-sprite so the previews resolve them. -->
+<script>
+(function () {
+  let pw = null, t0 = Date.now();
+  /* e.code too, so P still works while the Korean IME is on (e.key then reports 'ㅔ' or 'Process') */
+  const isP = e => e.code === 'KeyP' || e.key === 'p' || e.key === 'P';
+  const css = '*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#1d1d21!important;color:#eee;font-family:var(--sans)}' +
+    '.pz-pp{display:grid;grid-template-columns:minmax(300px,1fr) 2fr;grid-template-rows:auto 1fr;gap:18px;height:100%;padding:18px}' +
+    '.pz-bar{grid-column:1/3;display:flex;align-items:center;gap:16px;font-family:var(--mono);font-size:18px}' +
+    '.pz-bar b{color:var(--red);font-size:26px}.pz-bar .pz-tm{margin-left:auto;font-size:30px;color:#fff}' +
+    '.pz-bar button{background:#333;color:#eee;border:1px solid #555;border-radius:8px;padding:8px 16px;font:inherit;cursor:pointer}.pz-bar button:hover{background:#444}' +
+    '.pz-col{display:flex;flex-direction:column;gap:12px;min-height:0}.pz-lb{font-family:var(--mono);font-size:14px;color:#999;letter-spacing:.08em}' +
+    '.pz-pv{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:8px;background:#fff;flex:none;pointer-events:none}' +
+    '.pz-pv .pz-st{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}' +
+    '.pz-pv *{transition:none!important;animation:none!important}' +
+    '.pz-pv .pz-end{display:flex;height:100%;align-items:center;justify-content:center;color:#888;font-size:22px;background:#2a2a2e}' +
+    '.pz-nt{flex:1;min-height:0;overflow:auto;background:#26262b;border-radius:8px;padding:28px 34px}' +
+    '.pz-nt h3{margin:0 0 18px;color:var(--red-soft);font-size:24px}.pz-nt p{margin:0;font-size:var(--nfs,30px);line-height:1.7;white-space:pre-wrap;word-break:keep-all}';
+
+  function preview(i) {
+    const s = deck.slides[i];
+    if (!s) return '<div class="pz-end">마지막 슬라이드입니다</div>';
+    const c = s.cloneNode(true);
+    c.classList.add('active', 'visible');
+    c.querySelectorAll('[contenteditable]').forEach(e => e.removeAttribute('contenteditable'));
+    /* if the slide sits inside a wrapper element (not directly in the stage), keep that wrapper's class so the preview styles match */
+    const wrap = s.parentElement && s.parentElement !== deck.stage ? s.parentElement.className : '';
+    return '<div class="pz-st"><div class="' + wrap + '">' + c.outerHTML + '</div></div>';
+  }
+  /* the presenter document, or null if the window is closed or no longer shows the presenter view */
+  function doc() {
+    try { const d = pw && !pw.closed && pw.document; return d && d.getElementById('pCur') ? d : null; } catch (e) { return null; }
+  }
+  function fit() {
+    const d = doc(); if (!d) return;
+    d.querySelectorAll('.pz-pv').forEach(p => { const st = p.querySelector('.pz-st'); if (st) st.style.transform = 'scale(' + (p.clientWidth / 1920) + ')'; });
+  }
+  function render() {
+    const d = doc(); if (!d) return;
+    const i = deck.i, n = (typeof NOTES !== 'undefined' && NOTES[i]) || { h: '', b: '' };
+    d.getElementById('pCur').innerHTML = preview(i);
+    d.getElementById('pNext').innerHTML = preview(i + 1);
+    d.getElementById('pNum').textContent = (i + 1) + ' / ' + deck.slides.length;
+    d.getElementById('pHead').textContent = n.h;
+    d.getElementById('pBody').textContent = n.b;
+    d.querySelector('.pz-nt').scrollTop = 0;
+    fit();
+  }
+  function clock() {
+    const d = doc(); if (!d) return;
+    const s = Math.floor((Date.now() - t0) / 1000);
+    d.getElementById('pTime').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+  function open() {
+    if (pw && !pw.closed) { if (doc()) { pw.focus(); return; } pw.close(); }   /* navigated away: start a fresh window */
+    pw = window.open('', 'deckPresenter', 'width=1280,height=760');
+    if (!pw) { alert('팝업이 차단되었습니다. 이 파일의 팝업을 허용한 뒤 P를 다시 눌러 주세요.'); return; }
+    const styles = [...document.querySelectorAll('link[rel="stylesheet"],link[rel="preconnect"],style')].map(e => e.outerHTML).join('');
+    const sprites = [...document.querySelectorAll('[data-sprite]')].map(e => e.outerHTML).join('');
+    pw.document.open();
+    pw.document.write('<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>발표자 보기 · ' + document.title + '</title>' +
+      '<base href="' + location.href.replace(/"/g, '&quot;') + '">' + styles + '<style>' + css + '</style></head><body>' +
+      '<div style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">' + sprites + '</div>' +
+      '<div class="pz-pp"><div class="pz-bar"><b id="pNum"></b><button id="pPrev">◀ 이전</button><button id="pNextBtn">다음 ▶</button>' +
+      '<span class="pz-tm" id="pTime">00:00</span><button id="pReset">타이머 리셋</button><button id="pFsDn">가−</button><button id="pFsUp">가+</button></div>' +
+      '<div class="pz-col"><div class="pz-lb">현재 슬라이드</div><div class="pz-pv" id="pCur"></div>' +
+      '<div class="pz-lb">다음 슬라이드</div><div class="pz-pv" id="pNext"></div></div>' +
+      '<div class="pz-col"><div class="pz-lb">스크립트</div><div class="pz-nt"><h3 id="pHead"></h3><p id="pBody"></p></div></div></div></body></html>');
+    pw.document.close();
+    const d = pw.document;
+    d.getElementById('pPrev').onclick = () => deck.prev();
+    d.getElementById('pNextBtn').onclick = () => deck.next();
+    d.getElementById('pReset').onclick = () => { t0 = Date.now(); clock(); };
+    let fs = 30; try { fs = +localStorage.getItem('presenterFs') || 30; } catch (e) { }
+    const setFs = v => { fs = Math.max(18, Math.min(56, v)); d.documentElement.style.setProperty('--nfs', fs + 'px'); try { localStorage.setItem('presenterFs', fs); } catch (e) { } };
+    setFs(fs);
+    d.getElementById('pFsDn').onclick = () => setFs(fs - 2);
+    d.getElementById('pFsUp').onclick = () => setFs(fs + 2);
+    pw.addEventListener('keydown', e => {
+      if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); deck.next(); }
+      else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); deck.prev(); }
+      else if (e.key === 'Home') deck.show(0); else if (e.key === 'End') deck.show(deck.slides.length - 1);
+      else if ((e.metaKey || e.ctrlKey) && !e.shiftKey && isP(e)) e.preventDefault();
+    });
+    pw.addEventListener('resize', fit);
+    pw.addEventListener('load', fit);
+    t0 = Date.now();
+    render(); clock();
+  }
+  const show = deck.show.bind(deck);
+  deck.show = n => { show(n); render(); };
+  setInterval(clock, 1000);
+  addEventListener('keydown', e => {
+    if (!isP(e) || e.altKey) return;
+    if (e.metaKey || e.ctrlKey) {
+      if (e.shiftKey) return;   /* Ctrl+Shift+P (Windows/Linux) keeps Chrome's system print dialog; ⌥⌘P (macOS) passes the altKey check above */
+      e.preventDefault(); open();   /* ⌘P / Ctrl+P: presenter window instead of the print dialog, edit mode included */
+      return;
+    }
+    if (document.body.classList.contains('editing')) return;   /* plain P while editing is just a letter */
+    open();
+  });
+  addEventListener('beforeunload', () => { if (pw && !pw.closed) pw.close(); });
+})();
 </script>
 </body>
 </html>
